@@ -1,18 +1,12 @@
 #!/bin/bash
-__run() {
-  echo -e "123456\n123456" | (passwd)
-  /usr/sbin/sshd -D
-}
-
-__start() {
-  #程序名
-  RUN_NAME="$1"
-  source /etc/profile
-  bash $JAVA_OPTS/bin/stop.sh
-  bash $JAVA_OPTS/bin/start.sh
-  echo "$RUN_NAME started success."
+__run_node() {
+  echo $1
+  if [ -n "$1" ];then
+  echo -e "$1\n$1" | (passwd)
+  /usr/sbin/sshd
+  fi
+  pm2 start index.js --no-daemon --node-args='--max-old-space-size=8192'
 }
 
 # Call all functions
-__start $1
-__run
+__run_node $1
