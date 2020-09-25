@@ -42,10 +42,10 @@ RUN apt-get update \
  && apt-get install -y curl  \
  && apt-get install -y alien
 
-ADD ./oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm  /var/www/
-ADD ./alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm /var/www/
-ADD ./alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm /var/www/
-WORKDIR /var/www
+ADD ./oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm  /var/
+ADD ./alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm /var/
+ADD ./alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm /var/
+WORKDIR /var
 RUN alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm
 RUN alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm
 RUN alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm
