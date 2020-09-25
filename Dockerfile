@@ -1,32 +1,27 @@
-FROM daocloud.io/library/ubuntu:16.04
-MAINTAINER JiYun Tech Team <mboss0@163.com>
+# INSTALL UBUNTU
+FROM node:8-wheezy
 
-RUN groupadd --gid 1000 node \
-  && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
+#INSTALL LIBAIO1 & UNZIP (NEEDED FOR STRONG-ORACLE)
+RUN apt-get update \
+ && apt-get install -y libaio1 \
+ && apt-get install -y build-essential \
+ && apt-get install -y unzip \
+ && apt-get install -y curl
 
-ADD https://nodejs.org/dist/v8.9.4/node-v8.9.4-linux-x64.tar.gz /tmp/
-RUN tar -xzf /tmp/node-v8.9.4-linux-x64.tar.gz -C /usr/local --strip-components=1 --no-same-owner
+#ADD ORACLE INSTANT CLIENT
+RUN mkdir -p opt/oracle
+ADD ./oracle/linux/ .
 
-RUN rm -rf /tmp/*
+RUN unzip instantclient-basic-linux.x64-12.2.0.1.0.zip -d /opt/oracle \
+ && unzip instantclient-sdk-linux.x64-12.2.0.1.0.zip -d /opt/oracle  \
+ && mv /opt/oracle/instantclient_12_2 /opt/oracle/instantclient \
+ && ln -s /opt/oracle/instantclient/libclntsh.so.12.2 /opt/oracle/instantclient/libclntsh.so \
+ && ln -s /opt/oracle/instantclient/libocci.so.12.2 /opt/oracle/instantclient/libocci.so
 
-RUN set -x && apt-get update && apt-get install --no-install-recommends --no-install-suggests -y openssh-server tzdata  && rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/*
-RUN mkdir /var/run/sshd && \
-    rm /etc/localtime && \
-    ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo 'Asia/Shanghai' > /etc/timezone
+ENV LD_LIBRARY_PATH="/opt/oracle/instantclient"
+ENV OCI_HOME="/opt/oracle/instantclient"
+ENV OCI_LIB_DIR="/opt/oracle/instantclient"
+ENV OCI_INCLUDE_DIR="/opt/oracle/instantclient/sdk/include"
+ENV OCI_VERSION=12
 
-ADD ./sshd_config /etc/ssh/sshd_config
-
-ADD ./start.sh /start.sh
-RUN chmod 755 /start.sh
-
-RUN echo "sshd:ALL" >> /etc/hosts.allow
-
-RUN mkdir -p /var/www
-VOLUME /var/www
-WORKDIR /var/www
-
-RUN npm install pm2 -g
-ENV EGG_SERVER_ENV prod
-
-ENTRYPOINT ["/bin/bash", "/start.sh"]
+RUN echo '/opt/oracle/instantclient/' | tee -a /etc/ld.so.conf.d/oracle_instant_client.conf && ldconfig
