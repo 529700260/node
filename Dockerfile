@@ -1,27 +1,38 @@
-# INSTALL UBUNTU
-FROM node:8-wheezy
+FROM daocloud.io/library/ubuntu:18.04
+MAINTAINER JiYun Tech Team <mboss0@163.com>
 
-#INSTALL LIBAIO1 & UNZIP (NEEDED FOR STRONG-ORACLE)
-RUN apt-get update \
- && apt-get install -y libaio1 \
- && apt-get install -y build-essential \
- && apt-get install -y unzip \
- && apt-get install -y curl
+ADD ./sources.list /etc/apt/sources.list
 
-#ADD ORACLE INSTANT CLIENT
-RUN mkdir -p opt/oracle
-ADD ./oracle/linux/ .
+ADD ./boost.tar.bz2 /usr/local/
+ADD ./python3.tar.bz2 /usr/local/
+ADD ./v8.tar.bz2 /usr/local/
+ADD ./ld.so.conf /etc/ld.so.conf
 
-RUN unzip instantclient-basic-linux.x64-12.2.0.1.0.zip -d /opt/oracle \
- && unzip instantclient-sdk-linux.x64-12.2.0.1.0.zip -d /opt/oracle  \
- && mv /opt/oracle/instantclient_12_2 /opt/oracle/instantclient \
- && ln -s /opt/oracle/instantclient/libclntsh.so.12.2 /opt/oracle/instantclient/libclntsh.so \
- && ln -s /opt/oracle/instantclient/libocci.so.12.2 /opt/oracle/instantclient/libocci.so
+RUN set -x && apt-get update && apt-get install -y --no-install-recommends  openssh-server tzdata wget  && rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/*
+RUN mkdir /var/run/sshd && \
+    rm /etc/localtime && \
+    ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo 'Asia/Shanghai' > /etc/timezone && \
+    echo "Port 22" >> /etc/ssh/sshd_config && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
+    rm /etc/ssh/ssh_host_* && \
+    ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' && \
+    ssh-keygen -t ecdsa -f /etc/ssh/ssh_host_ecdsa_key -N '' && \
+    ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
 
-ENV LD_LIBRARY_PATH="/opt/oracle/instantclient"
-ENV OCI_HOME="/opt/oracle/instantclient"
-ENV OCI_LIB_DIR="/opt/oracle/instantclient"
-ENV OCI_INCLUDE_DIR="/opt/oracle/instantclient/sdk/include"
-ENV OCI_VERSION=12
+ADD https://nodejs.org/dist/v11.5.0/node-v11.5.0-linux-x64.tar.gz /tmp/
+RUN tar -xzf /tmp/node-v11.5.0-linux-x64.tar.gz -C /usr/local --strip-components=1 --no-same-owner && \
+    rm -rf /tmp/*
 
-RUN echo '/opt/oracle/instantclient/' | tee -a /etc/ld.so.conf.d/oracle_instant_client.conf && ldconfig
+ADD ./start.sh /start.sh
+RUN chmod 755 /start.sh
+
+RUN echo "sshd:ALL" >> /etc/hosts.allow
+
+RUN mkdir -p /var/www
+VOLUME /var/www
+WORKDIR /var/www
+
+RUN npm config set registry https://registry.npm.taobao.org/ && npm install pm2 -g
+
+ENTRYPOINT ["/bin/bash", "/start.sh"]
