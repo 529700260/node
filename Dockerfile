@@ -35,4 +35,25 @@ WORKDIR /var/www
 
 RUN npm config set registry https://registry.npm.taobao.org/ && npm install pm2 -g
 
+RUN apt-get update \
+ && apt-get install -y libaio1 \
+ && apt-get install -y build-essential \
+ && apt-get install -y unzip \
+ && apt-get install -y curl  \
+ && apt-get install -y alien
+
+ADD ./oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm  /var/www/
+ADD ./alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm /var/www/
+ADD ./alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm /var/www/
+WORKDIR /var/www
+RUN alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm
+RUN alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm
+RUN alien -i oracle-instantclient11.2-basic-11.2.0.4.0-1.x86_64.rpm
+RUN export ORACLE_HOME=/usr/lib/oracle/11.2/client64 
+RUN export LD_LIBRARY_PATH=/usr/lib/oracle/11.2/client64/lib
+RUN export TNS_ADMIN=/usr/lib/oracle/11.2/client64/network/admin
+RUN export PATH=$PATH:$ORACLE_HOME/bin
+
+
+
 ENTRYPOINT ["/bin/bash", "/start.sh"]
