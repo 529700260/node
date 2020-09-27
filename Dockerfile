@@ -25,7 +25,8 @@ RUN export ORACLE_HOME=/usr/lib/oracle/11.2/client64 && \
     ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
     chmod 755 /start.sh && \
-    mkdir -p /var/www
+    mkdir -p /usr/lib/oracle/11.2/client64/network/admin
+    mkdir -p /var/www  
 
 VOLUME /var/www
 WORKDIR /var/www
